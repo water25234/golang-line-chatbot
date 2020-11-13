@@ -23,7 +23,7 @@
 - sls create --template aws-go --path myService
 
 ## Build the project
-- make build
+- make deploy
 - execute Url
 
 ## Check your AWS
