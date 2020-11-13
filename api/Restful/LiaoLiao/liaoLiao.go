@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	liaoB "github.com/water25234/golang-line-chatbot/business/liaoliao"
+	"github.com/line/line-bot-sdk-go/linebot"
+	"github.com/water25234/golang-line-chatbot/business/liaoliao"
+	"github.com/water25234/golang-line-chatbot/config"
 )
 
 // GetLiaoLiaoMessage mean get liaoliao message
@@ -17,5 +19,12 @@ func GetLiaoLiaoMessage(ctx *gin.Context) {
 
 // PostLiaoLiaoMessage mean get send laiolaio message
 func PostLiaoLiaoMessage(ctx *gin.Context) {
-	liaoB.Message(ctx)
+
+	bot, _ := linebot.New(
+		config.GetAppConfig().LineChannelSecret,
+		config.GetAppConfig().LineChannelAccessToken)
+
+	var liaoliao = liaoliao.New(ctx, bot)
+
+	liaoliao.Message()
 }

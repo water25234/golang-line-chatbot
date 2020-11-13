@@ -10,18 +10,27 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 
 	tl "github.com/water25234/golang-line-chatbot/common/translate"
-	"github.com/water25234/golang-line-chatbot/config"
 )
 
-var bot *linebot.Client
+type imple struct {
+	ctx *gin.Context
+	bot *linebot.Client
+}
+
+// New mean liaoliao.Business by interface
+func New(ctx *gin.Context, bot *linebot.Client) Business {
+	return &imple{
+		ctx: ctx,
+		bot: bot,
+	}
+}
 
 // Message mean liaoliao business logic
-func Message(ctx *gin.Context) {
-	bot, _ = linebot.New(
-		config.GetAppConfig().LineChannelSecret,
-		config.GetAppConfig().LineChannelAccessToken)
+func (im *imple) Message() {
 
-	events, err := getLineEvents(ctx)
+	// result, _ := im.bot.ParseRequest(im.ctx.Request)
+
+	events, err := getLineEvents(im.ctx)
 	if err != nil {
 		log.Printf("error: %v", err)
 	}
@@ -31,7 +40,7 @@ func Message(ctx *gin.Context) {
 		if event.Type == linebot.EventTypeMessage {
 			switch event.Type {
 			case linebot.EventTypeMessage:
-				handleMessage(event)
+				im.handleMessage(event)
 			}
 		}
 	}
@@ -51,11 +60,11 @@ func getLineEvents(c *gin.Context) ([]*linebot.Event, error) {
 	return request.Events, nil
 }
 
-func handleMessage(event *linebot.Event) {
+func (im *imple) handleMessage(event *linebot.Event) {
 	switch message := event.Message.(type) {
 	case *linebot.TextMessage:
 		if message.Text == "liaoliao --help" {
-			_, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("line chatbot, commands: liaoliao --help, translate-tw, translate-en")).Do()
+			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("line chatbot, commands: liaoliao --help, translate-tw, translate-en")).Do()
 			if err != nil {
 				log.Printf("error: %v", err)
 			}
@@ -63,7 +72,7 @@ func handleMessage(event *linebot.Event) {
 			cmd := strings.Fields(message.Text)
 			trText := strings.Join(append(cmd[1:]), " ")
 
-			_, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "en", "zh-tw", "us-east-1"))).Do()
+			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "en", "zh-tw", "us-east-1"))).Do()
 			if err != nil {
 				log.Print(err)
 			}
@@ -71,7 +80,7 @@ func handleMessage(event *linebot.Event) {
 			cmd := strings.Fields(message.Text)
 			trText := strings.Join(append(cmd[1:]), " ")
 
-			_, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "zh-tw", "en", "us-east-1"))).Do()
+			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "zh-tw", "en", "us-east-1"))).Do()
 			if err != nil {
 				log.Print(err)
 			}
