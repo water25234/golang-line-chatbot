@@ -8,7 +8,7 @@ import (
 	liaoliao "github.com/water25234/golang-line-chatbot/app/server/liaoLiao"
 )
 
-// GetLiaoLiaoMessage mean
+// GetLiaoLiaoMessage mean get liaoliao message
 func GetLiaoLiaoMessage(ctx *gin.Context) {
 	fmt.Println("12345")
 
@@ -20,7 +20,7 @@ func GetLiaoLiaoMessage(ctx *gin.Context) {
 	)
 }
 
-// PostLiaoLiaoMessage mean
+// PostLiaoLiaoMessage mean get send laiolaio message
 func PostLiaoLiaoMessage(ctx *gin.Context) {
 	fmt.Println("67890")
 
