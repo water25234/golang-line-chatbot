@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	cntrLiaoLiao "github.com/water25234/golang-line-chatbot/app/controller/LiaoLiao"
+	apiRestfulLiao "github.com/water25234/golang-line-chatbot/api/Restful/LiaoLiao"
 )
 
 // SetupRouter mean setup router
@@ -12,8 +12,8 @@ func SetupRouter() *gin.Engine {
 	// api
 	LiaoLiao := router.Group("/LiaoLiao")
 	{
-		LiaoLiao.GET("", cntrLiaoLiao.GetLiaoLiaoMessage)
-		LiaoLiao.POST("", cntrLiaoLiao.PostLiaoLiaoMessage)
+		LiaoLiao.GET("", apiRestfulLiao.GetLiaoLiaoMessage)
+		LiaoLiao.POST("", apiRestfulLiao.PostLiaoLiaoMessage)
 	}
 
 	return router
