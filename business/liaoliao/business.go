@@ -12,15 +12,15 @@ import (
 	linebotE "github.com/water25234/golang-line-chatbot/entity/linebot"
 )
 
-type imple struct {
-	bot *linebot.Client
-}
-
 // New mean liaoliao.Business by interface
 func New(bot *linebot.Client) Business {
 	return &imple{
 		bot: bot,
 	}
+}
+
+type imple struct {
+	bot *linebot.Client
 }
 
 type jobChannel struct {
@@ -68,6 +68,11 @@ func (im *imple) Message(linebotEvents *linebotE.Events) {
 // WebHookHandleMessage mean start handle message
 func (im *imple) WebHookHandleMessage(event *linebot.Event) {
 	var sentence Sentence
+
+	defer func() {
+		sentence = nil
+	}()
+
 	switch message := event.Message.(type) {
 	case *linebot.TextMessage:
 		if message.Text == "liaoliao --help" {
@@ -89,9 +94,15 @@ func (im *imple) WebHookHandleMessage(event *linebot.Event) {
 				Region:     "us-east-1",
 			}
 		}
-		sentence.HandleSentence(event.ReplyToken, im.bot)
 	}
-	sentence = nil
+	im.RunHandleMessage(sentence, event.ReplyToken)
+}
+
+// RunHandleMessage mean IoC handle message anything do it.
+func (im *imple) RunHandleMessage(s Sentence, replyToken string) {
+	s.HandleSentence(replyToken, im.bot)
+
+	// do something...
 }
 
 // HandleSentence mean send command line content logic
