@@ -1,11 +1,13 @@
 package liaoliao
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/linebot"
-	"github.com/water25234/golang-line-chatbot/business/liaoliao"
+	liaoliaoB "github.com/water25234/golang-line-chatbot/business/liaoliao"
+	linebotB "github.com/water25234/golang-line-chatbot/business/linebot"
 	"github.com/water25234/golang-line-chatbot/config"
 )
 
@@ -24,7 +26,12 @@ func PostLiaoLiaoMessage(ctx *gin.Context) {
 		config.GetAppConfig().LineChannelSecret,
 		config.GetAppConfig().LineChannelAccessToken)
 
-	var liaoliao = liaoliao.New(ctx, bot)
+	linebot := linebotB.New()
+	linebotEvents, err := linebot.BindingLineBotJSON(ctx)
+	if err != nil {
+		log.Printf("Error: %v", err)
+	}
 
-	liaoliao.Message()
+	liaoliao := liaoliaoB.New(bot)
+	liaoliao.Message(linebotEvents)
 }

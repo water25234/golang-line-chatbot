@@ -1,41 +1,32 @@
 package liaoliao
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/linebot"
 
 	tl "github.com/water25234/golang-line-chatbot/common/translate"
+	linebotE "github.com/water25234/golang-line-chatbot/entity/linebot"
 )
 
 type imple struct {
-	ctx *gin.Context
 	bot *linebot.Client
 }
 
 // New mean liaoliao.Business by interface
-func New(ctx *gin.Context, bot *linebot.Client) Business {
+func New(bot *linebot.Client) Business {
 	return &imple{
-		ctx: ctx,
 		bot: bot,
 	}
 }
 
 // Message mean liaoliao business logic
-func (im *imple) Message() {
+func (im *imple) Message(linebotEvents *linebotE.Events) {
 
 	// result, _ := im.bot.ParseRequest(im.ctx.Request)
 
-	events, err := getLineEvents(im.ctx)
-	if err != nil {
-		log.Printf("error: %v", err)
-	}
-
-	for _, event := range events {
+	for _, event := range linebotEvents.Events {
 		log.Printf("Event ReplyToken: %v", event.ReplyToken)
 		if event.Type == linebot.EventTypeMessage {
 			switch event.Type {
@@ -44,20 +35,6 @@ func (im *imple) Message() {
 			}
 		}
 	}
-}
-
-func getLineEvents(c *gin.Context) ([]*linebot.Event, error) {
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		log.Printf("Error: %v", err)
-	}
-	request := &struct {
-		Events []*linebot.Event `json:"events"`
-	}{}
-	if err = json.Unmarshal(body, request); err != nil {
-		return nil, err
-	}
-	return request.Events, nil
 }
 
 func (im *imple) handleMessage(event *linebot.Event) {
