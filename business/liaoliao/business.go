@@ -2,6 +2,7 @@ package liaoliao
 
 import (
 	"log"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -22,26 +23,44 @@ func New(bot *linebot.Client) Business {
 	}
 }
 
+type jobChannel struct {
+	event *linebot.Event
+}
+
 // Message mean liaoliao business logic
 func (im *imple) Message(linebotEvents *linebotE.Events) {
-
-	// result, _ := im.bot.ParseRequest(im.ctx.Request)
+	if linebotEvents == nil {
+		log.Printf("linebotEvents is empty: %v", linebotEvents)
+		return
+	}
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
+	wg.Add(len(linebotEvents.Events))
 
-	go func(linebotEvents *linebotE.Events) {
-		for _, event := range linebotEvents.Events {
-			log.Printf("Event ReplyToken: %v", event.ReplyToken)
-			if event.Type == linebot.EventTypeMessage {
-				switch event.Type {
-				case linebot.EventTypeMessage:
-					im.handleMessage(event)
+	jobChans := make(chan jobChannel, len(linebotEvents.Events))
+
+	for i := 0; i <= runtime.NumCPU(); i++ {
+		go func() {
+			for job := range jobChans {
+				log.Printf("Event ReplyToken: %v", job.event.ReplyToken)
+				if job.event.Type == linebot.EventTypeMessage {
+					switch job.event.Type {
+					case linebot.EventTypeMessage:
+						im.handleMessage(job.event)
+					}
 				}
+				wg.Done()
 			}
+		}()
+	}
+
+	for _, event := range linebotEvents.Events {
+		jobChans <- jobChannel{
+			event: event,
 		}
-		wg.Done()
-	}(linebotEvents)
+	}
+
+	close(jobChans)
 
 	wg.Wait()
 }
