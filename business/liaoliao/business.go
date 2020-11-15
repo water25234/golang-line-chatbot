@@ -46,7 +46,7 @@ func (im *imple) Message(linebotEvents *linebotE.Events) {
 				if job.event.Type == linebot.EventTypeMessage {
 					switch job.event.Type {
 					case linebot.EventTypeMessage:
-						im.handleMessage(job.event)
+						im.WebHookHandleMessage(job.event)
 					}
 				}
 				wg.Done()
@@ -65,30 +65,60 @@ func (im *imple) Message(linebotEvents *linebotE.Events) {
 	wg.Wait()
 }
 
-func (im *imple) handleMessage(event *linebot.Event) {
+// WebHookHandleMessage mean start handle message
+func (im *imple) WebHookHandleMessage(event *linebot.Event) {
+	var sentence Sentence
 	switch message := event.Message.(type) {
 	case *linebot.TextMessage:
 		if message.Text == "liaoliao --help" {
-			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("line chatbot, commands: liaoliao --help, translate-tw, translate-en")).Do()
-			if err != nil {
-				log.Printf("error: %v", err)
+			sentence = &SendCommandLineContent{
+				Command: "line chatbot, commands: liaoliao --help, translate-tw, translate-en",
 			}
 		} else if strings.Contains(message.Text, "translate-tw") {
-			cmd := strings.Fields(message.Text)
-			trText := strings.Join(append(cmd[1:]), " ")
-
-			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "en", "zh-tw", "us-east-1"))).Do()
-			if err != nil {
-				log.Print(err)
+			sentence = &SendTranslateContent{
+				Sentence:   message.Text,
+				SourceLang: "en",
+				TargetLang: "zh-tw",
+				Region:     "us-east-1",
 			}
 		} else if strings.Contains(message.Text, "translate-en") {
-			cmd := strings.Fields(message.Text)
-			trText := strings.Join(append(cmd[1:]), " ")
-
-			_, err := im.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(tl.Translate(trText, "zh-tw", "en", "us-east-1"))).Do()
-			if err != nil {
-				log.Print(err)
+			sentence = &SendTranslateContent{
+				Sentence:   message.Text,
+				SourceLang: "zh-tw",
+				TargetLang: "en",
+				Region:     "us-east-1",
 			}
 		}
+		sentence.HandleSentence(event.ReplyToken, im.bot)
+	}
+	sentence = nil
+}
+
+// HandleSentence mean send command line content logic
+func (sc *SendCommandLineContent) HandleSentence(replyToken string, bot *linebot.Client) {
+	_, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(sc.Command),
+	).Do()
+
+	if err != nil {
+		log.Printf("error: %v", err)
+	}
+}
+
+// HandleSentence mean send translate content logic
+func (sc *SendTranslateContent) HandleSentence(replyToken string, bot *linebot.Client) {
+	cmd := strings.Fields(sc.Sentence)
+	trText := strings.Join(append(cmd[1:]), " ")
+
+	_, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(
+			tl.Translate(trText, sc.SourceLang, sc.TargetLang, sc.Region),
+		),
+	).Do()
+
+	if err != nil {
+		log.Print(err)
 	}
 }
