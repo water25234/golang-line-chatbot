@@ -3,6 +3,7 @@ package liaoliao
 import (
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 
@@ -26,15 +27,23 @@ func (im *imple) Message(linebotEvents *linebotE.Events) {
 
 	// result, _ := im.bot.ParseRequest(im.ctx.Request)
 
-	for _, event := range linebotEvents.Events {
-		log.Printf("Event ReplyToken: %v", event.ReplyToken)
-		if event.Type == linebot.EventTypeMessage {
-			switch event.Type {
-			case linebot.EventTypeMessage:
-				im.handleMessage(event)
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	go func(linebotEvents *linebotE.Events) {
+		for _, event := range linebotEvents.Events {
+			log.Printf("Event ReplyToken: %v", event.ReplyToken)
+			if event.Type == linebot.EventTypeMessage {
+				switch event.Type {
+				case linebot.EventTypeMessage:
+					im.handleMessage(event)
+				}
 			}
 		}
-	}
+		wg.Done()
+	}(linebotEvents)
+
+	wg.Wait()
 }
 
 func (im *imple) handleMessage(event *linebot.Event) {
