@@ -11,6 +11,10 @@ import (
 	"github.com/water25234/golang-line-chatbot/config"
 )
 
+type liaoLiaoAPI struct {
+	liaoliaoB liaoliaoB.Business
+}
+
 // GetLiaoLiaoMessage mean get liaoliao message
 func GetLiaoLiaoMessage(ctx *gin.Context) {
 	ctx.JSON(

@@ -25,6 +25,11 @@ type SendTranslateContent struct {
 	Region     string
 }
 
+// SendStackDescContent describe send translate content
+type SendStackDescContent struct {
+
+}
+
 // Sentence describe sentence of interface
 type Sentence interface {
 

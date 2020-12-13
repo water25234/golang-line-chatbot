@@ -77,7 +77,7 @@ func (im *imple) WebHookHandleMessage(event *linebot.Event) {
 	case *linebot.TextMessage:
 		if message.Text == "liaoliao --help" {
 			sentence = &SendCommandLineContent{
-				Command: "line chatbot, commands: liaoliao --help, translate-tw, translate-en",
+				Command: "line chatbot, commands: liaoliao --help, translate-tw, translate-en, --stock desc",
 			}
 		} else if strings.Contains(message.Text, "translate-tw") {
 			sentence = &SendTranslateContent{
@@ -93,6 +93,8 @@ func (im *imple) WebHookHandleMessage(event *linebot.Event) {
 				TargetLang: "en",
 				Region:     "us-east-1",
 			}
+		} else if strings.Contains(message.Text, "--stock desc") {
+			sentence = &SendStackDescContent{}
 		}
 	}
 	im.RunHandleMessage(sentence, event.ReplyToken)
@@ -127,6 +129,38 @@ func (sc *SendTranslateContent) HandleSentence(replyToken string, bot *linebot.C
 		linebot.NewTextMessage(
 			tl.Translate(trText, sc.SourceLang, sc.TargetLang, sc.Region),
 		),
+	).Do()
+
+	if err != nil {
+		log.Print(err)
+	}
+}
+
+// HandleSentence mean send translate content logic
+func (sc *SendStackDescContent) HandleSentence(replyToken string, bot *linebot.Client) {
+	desc := `每股盈餘 (EPS)
+		本益比 (PER)
+		每股淨值比 (PBR)
+		每股淨值 (BPS)
+		股東權益 (ROE)
+		專注本業
+		
+		公式
+		每股盈餘 (EPS) = 稅後淨利 / 總發行股數
+		本益比 (PER) = 每股市價 / 每股盈餘(EPS)
+		每股淨值比 (PBR) = 股票市值 / 每股淨值 (BPS)
+		每股淨值 (BPS) = (資產總額 - 負債總額) / 總發行股數
+		股東權益 (ROE) = 稅後淨利 / 股東權益
+
+		專注本業 = 營業利益 / 稅前淨利
+		
+		估價(ROE, 股災) = 每股淨值 * (合理ROE / 100) * 合理低PER (請查近7年)
+		估價(ROE, 合理) = 每股淨值 * (合理ROE / 100) * 合理PER (請查近7年)
+		估價 = 合理PER * 每股盈餘(EPS) (請查近7年)
+	`
+	_, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(desc),
 	).Do()
 
 	if err != nil {
